@@ -5,11 +5,12 @@ class Game {
 
         this.playButtonAudio();
         this.addEventListeners();
-        this.handleUserPress();
-        this.flash();
-        this.flashGameOver();
-        this.handleGameOver();
-        this.addButtonSequence();
+        // this.handleUserPress();
+        // this.flash();
+        // this.flashGameOver();
+        // this.handleGameOver();
+        // this.handleLevelUp();
+        // this.addButtonSequence();
         this.startGame();
     }
 
@@ -19,13 +20,12 @@ class Game {
             this.handleUserPress(event);
         })
 
-        $(document).one("keydown", (event) => this.startGame());
+        $(document).one("keydown", () => this.handleLevelUp(count));
 
 
     }
 
     playButtonAudio(id) {
-
         if(!id) return;
         let audio = new Audio(`sounds/${id}.mp3`)
         audio.currentTime = 0;
@@ -53,20 +53,15 @@ class Game {
         $(document).one("keydown", () => this.startGame());
     }
 
-    startGame(event){
-        $("body").on("keydown", () => {
-            this.addButtonSequence();
-        })
-        $("body").on("keydown", () => {
-            console.log(event);
-        })
+    handleLevelUp(count) {
+        $("#level-title").text(`Level: ${count}`);
     }
 
     flashGameOver(){
         $("body").addClass("game-over");
         setTimeout(() => {
             $("body").removeClass("game-over");
-        }, 200)
+        }, 100)
     }
 
     flash(buttonId){
@@ -80,11 +75,20 @@ class Game {
             }, 100);
         }
     }
+
+    startGame(){
+        let count = 1;
+        $("body").on("keydown", () => {
+            this.addButtonSequence();
+            this.handleLevelUp(count);
+            count+=1;
+        })
+    }
+
 }
 new Game()
 
 //To-dos
-//1. Game0ver Function (what happens when the user selects a wrong answer)
 //2. level up function
 //3. Check answer function
 //4. Try again function
