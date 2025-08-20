@@ -7,6 +7,8 @@ class Game {
         this.addEventListeners();
         this.handleUserPress();
         this.flash();
+        this.flashGameOver();
+        this.handleGameOver();
         this.addButtonSequence();
         this.startGame();
     }
@@ -45,6 +47,12 @@ class Game {
         this.flash(buttonId)
     }
 
+    handleGameOver() {
+        this.flashGameOver();
+        $("#level-title").text("Game Over 🧌 Press Any Key to Restart")
+        $(document).one("keydown", () => this.startGame());
+    }
+
     startGame(event){
         $("body").on("keydown", () => {
             this.addButtonSequence();
@@ -52,6 +60,13 @@ class Game {
         $("body").on("keydown", () => {
             console.log(event);
         })
+    }
+
+    flashGameOver(){
+        $("body").addClass("game-over");
+        setTimeout(() => {
+            $("body").removeClass("game-over");
+        }, 200)
     }
 
     flash(buttonId){
@@ -67,3 +82,9 @@ class Game {
     }
 }
 new Game()
+
+//To-dos
+//1. Game0ver Function (what happens when the user selects a wrong answer)
+//2. level up function
+//3. Check answer function
+//4. Try again function
