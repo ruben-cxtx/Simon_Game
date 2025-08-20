@@ -49,7 +49,7 @@ class Game {
 
     handleGameOver() {
         this.flashGameOver();
-        $("#level-title").text("Game Over 🧌 Press Any Key to Restart")
+        $("#level-title").text("Game Over 🧌 Press Any Key to Restart");
         $(document).one("keydown", () => this.startGame());
     }
 
