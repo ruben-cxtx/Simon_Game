@@ -1,28 +1,108 @@
 class Game {
     constructor() {
-        this.buttonList = ['green', 'red', 'yellow', 'blue'];
-        this.gameButtons = [];
+        this.BUTTONS = ['green', 'red', 'yellow', 'blue'];
+        this.FLASH_MS = 100;
+        this.STEP_GAP_MS = 600;
+        this.NEXT_LEVEL_DELAY_MS = 800;
 
-        this.playButtonAudio();
-        this.addEventListeners();
-        // this.handleUserPress();
-        // this.flash();
-        // this.flashGameOver();
-        // this.handleGameOver();
-        // this.handleLevelUp();
-        // this.addButtonSequence();
-        this.startGame();
+
+        this.sequence = [];
+        this.level = 0;
+        this.inputIndex = 0;
+        this.isReplaying = false;
+
+        this.onStartKey = this.start.bind(this);
+        this.onButtonClick = this.handleUserPress.bind(this);
+
+        this.bindEvents();
     }
 
 
-    addEventListeners() {
-        $(".btn").click((event) => {
-            this.handleUserPress(event);
-        })
+    bindEvents() {
+        $(document).on('keydown', this.onStartKey);
 
-        $(document).one("keydown", () => this.handleLevelUp(count));
+        $('.btn').off('click').on('click', this.onButtonClick);
+    }
+
+    start() {
+        this.hardReset();
+        this.nextLevel();
+    }
+
+    hardReset() {
+        this.sequence = [];
+        this.level = 0;
+        this.inputIndex = 0;
+        this.isReplaying = 0;
+        $("#level-title").text('level: 0');
+    }
+
+    async nextLevel() {
+        this.level += 1;
+        $('#level-title').text(`Level: ${this.level}`);
+        this.inputIndex = 0;
+
+        //add new random button
+        const id = this.BUTTONS[Math.floor(Math.random() * this.BUTTONS.length)];
+        this.sequence.push(id);
+
+        await this.playSequence();
+    }
+
+    sleep(ms) {
+        return new Promise(r => setTimeout(r, ms));
+    }
+
+    async playSequence(){
+        this.isReplaying = true;
+        for(const id of this.sequence){
+            this.flash(id);
+            this.playButtonAudio(id);
+            await this.sleep(this.STEP_GAP_MS);
+        }
+        this.isReplaying = false;
+    }
 
 
+
+    handleUserPress(event) {
+        const id = event.currentTarget.id;
+        if(this.isReplaying) return;
+
+        this.flash(id);
+        this.playButtonAudio(id);
+
+        if(id !== this.sequence[this.inputIndex]) {
+            this.handleGameOver()
+            return;
+        }
+
+        this.inputIndex += 1;
+
+        if(this.inputIndex === this.sequence.length) {
+            setTimeout(() => this.nextLevel(), this.NEXT_LEVEL_DELAY_MS);
+        }
+
+    }
+
+
+
+    handleGameOver() {
+        this.playWrong();
+        $('body').addClass('game-over')
+        setTimeout(() => $('body').removeClass('game-over'), 200);
+        $("#level-title").text("Game Over 🧌 Press Any Key to Restart");
+
+        $(document).one("keydown", () => this.start());
+    }
+
+
+
+    flash(id){
+        if(!this.BUTTONS.includes(id)) return;
+        const $el = $(`#${id}`);
+        $el.addClass('pressed');
+        setTimeout(() => $el.removeClass('pressed'), this.FLASH_MS);
     }
 
     playButtonAudio(id) {
@@ -32,63 +112,16 @@ class Game {
         audio.play()
     }
 
-    addButtonSequence() {
-        const buttonId = this.buttonList[Math.floor(Math.random() * this.buttonList.length)]
-        this.gameButtons.push(buttonId);
-        console.log(this.gameButtons);
-        this.gameButtons.forEach((id, index) => {
-            setTimeout(() => this.flash(id), 600 * index)
-        })
+    playWrong() {
+        const audio = new Audio('sounds/wrong.mp3');
+        audio.currentTime = 0;
+        audio.play();
     }
-
-    handleUserPress(event) {
-        const buttonId = event.target.id;
-
-        this.flash(buttonId)
-    }
-
-    handleGameOver() {
-        this.flashGameOver();
-        $("#level-title").text("Game Over 🧌 Press Any Key to Restart");
-        $(document).one("keydown", () => this.startGame());
-    }
-
-    handleLevelUp(count) {
-        $("#level-title").text(`Level: ${count}`);
-    }
-
-    flashGameOver(){
-        $("body").addClass("game-over");
-        setTimeout(() => {
-            $("body").removeClass("game-over");
-        }, 100)
-    }
-
-    flash(buttonId){
-        if (this.buttonList.includes(buttonId)) {
-            $(`#${buttonId}`).addClass("pressed");
-
-            this.playButtonAudio(buttonId);
-
-            setTimeout(() => {
-                $(`#${buttonId}`).removeClass("pressed");
-            }, 100);
-        }
-    }
-
-    startGame(){
-        let count = 1;
-        $("body").on("keydown", () => {
-            this.addButtonSequence();
-            this.handleLevelUp(count);
-            count+=1;
-        })
-    }
-
 }
 new Game()
 
 //To-dos
-//2. level up function
 //3. Check answer function
-//4. Try again function
+// - add a counter that everytime the user levels up then it restart and when the user pressed a button it goes up to check the next answer
+//4, Handle user buttons
+//- set a counter that checks if they match in order
